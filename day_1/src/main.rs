@@ -49,9 +49,42 @@ impl TwoNotes {
             .sum()
     }
 
-    fn solve(&mut self) -> i32 {
+    fn find_similarity(&self) -> i32 {
+        let mut similarity = 0;
+        let mut i = 0;
+        let mut j = 0;
+
+        while i < self.left_note.len() {
+            let current = self.left_note[i];
+
+            let mut count_left = 0;
+            while i < self.left_note.len() && self.left_note[i] == current {
+                count_left += 1;
+                i += 1;
+            }
+
+            let mut count_right = 0;
+            while j < self.right_note.len() && self.right_note[j] < current {
+                j += 1;
+            }
+            while j < self.right_note.len() && self.right_note[j] == current {
+                count_right += 1;
+                j += 1;
+            }
+
+            similarity += current * count_left * count_right;
+        }
+
+        similarity
+    }
+    fn solve_part_1(&mut self) -> i32 {
         self.sort_notes();
         self.get_distances()
+    }
+
+    fn solve_part_2(&mut self) -> i32 {
+        self.sort_notes();
+        self.find_similarity()
     }
 }
 
@@ -67,16 +100,24 @@ fn read_input(filename: &str) -> Result<String, Box<dyn std::error::Error>> {
 fn main() {
     let input = read_input("puzzle_input.txt").unwrap();
     let mut notes = TwoNotes::new(input);
-    println!("{}", notes.solve());
+    println!("Part 1 solution: {}", notes.solve_part_1());
+    println!("Part 2 solution: {}", notes.solve_part_2());
 }
 
 mod tests {
     use super::*;
 
     #[test]
-    fn test_solution() {
+    fn test_solution_part_1() {
         let input = read_input("test_case.txt").unwrap();
         let mut notes = TwoNotes::new(input);
-        assert_eq!(11, notes.solve());
+        assert_eq!(11, notes.solve_part_1());
+    }
+
+    #[test]
+    fn test_solution_part_2() {
+        let input = read_input("test_case.txt").unwrap();
+        let mut notes = TwoNotes::new(input);
+        assert_eq!(31, notes.solve_part_2());
     }
 }
