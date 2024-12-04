@@ -104,6 +104,7 @@ fn main() {
     println!("Part 2 solution: {}", notes.solve_part_2());
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 

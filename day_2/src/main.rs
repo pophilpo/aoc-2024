@@ -39,12 +39,14 @@ struct Report {
 }
 
 impl Report {
-        fn new(input: &str) -> Self {
+    fn new(input: &str) -> Self {
         let reports = input
             .lines()
-            .map(|line| line.split_whitespace()
-                            .map(|num| num.parse::<i32>().expect("Input is always valid"))
-                            .collect())
+            .map(|line| {
+                line.split_whitespace()
+                    .map(|num| num.parse::<i32>().expect("Input is always valid"))
+                    .collect()
+            })
             .collect();
         Self { reports }
     }
@@ -91,6 +93,7 @@ fn main() {
     println!("{}", report.solve_part_1());
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 
