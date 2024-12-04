@@ -1,5 +1,6 @@
 use std::{fs::File, io::Read};
 
+#[derive(PartialEq, Eq, Clone, Debug)]
 enum Trend {
     Increasing,
     Descreasing,
@@ -36,10 +37,12 @@ impl Trend {
 #[derive(Debug)]
 struct Report {
     reports: Vec<Vec<i32>>,
+    number_of_safe_reports: usize,
 }
 
 impl Report {
     fn new(input: &str) -> Self {
+        let number_of_safe_reports = 0;
         let reports = input
             .lines()
             .map(|line| {
@@ -48,36 +51,49 @@ impl Report {
                     .collect()
             })
             .collect();
-        Self { reports }
+        Self {
+            reports,
+            number_of_safe_reports,
+        }
     }
-    fn solve_part_1(&self) -> u16 {
-        let mut number_of_safe_reports: u16 = 0;
 
-        for report in &self.reports {
-            let mut trend = Trend::Empty;
-            number_of_safe_reports += 1;
-            for i in 0..report.len() - 1 {
-                let diff = report[i] - report[i + 1];
-                if !(1 <= diff.abs() && diff.abs() <= 3) {
-                    number_of_safe_reports -= 1;
-                    break;
-                }
+    fn is_safe(level_slice: &[i32], current_trend: &mut Trend) -> bool {
+        let diff = level_slice[0] - level_slice[1];
 
-                trend = trend.check_trend(diff);
-                match trend {
-                    Trend::Empty => {
-                        number_of_safe_reports -= 1;
-                        break;
-                    }
-                    _ => continue,
-                }
-            }
+        if diff.abs() < 1 || diff.abs() > 3 {
+            return false;
         }
 
-        number_of_safe_reports
+        let new_trend = current_trend.check_trend(diff);
+
+        if *current_trend == Trend::Empty {
+            *current_trend = new_trend;
+            return true;
+        }
+
+        match *current_trend == new_trend {
+            true => return true,
+            false => return false,
+        }
+    }
+
+    fn solve_part_1(&mut self) {
+        for report in &self.reports {
+            self.number_of_safe_reports += 1;
+            let mut trend = Trend::Empty;
+            for i in 0..report.len() - 1 {
+                let level_slice = &report[i..i + 2];
+                match Report::is_safe(level_slice, &mut trend) {
+                    true => continue,
+                    false => {
+                        self.number_of_safe_reports -= 1;
+                        break;
+                    }
+                };
+            }
+        }
     }
 }
-
 fn read_input(filename: &str) -> Result<String, Box<dyn std::error::Error>> {
     let mut file = File::open(filename)?;
     let mut buffer = String::new();
@@ -89,8 +105,9 @@ fn read_input(filename: &str) -> Result<String, Box<dyn std::error::Error>> {
 
 fn main() {
     let input = read_input("puzzle_input.txt").unwrap();
-    let report = Report::new(&input);
-    println!("{}", report.solve_part_1());
+    let mut report = Report::new(&input);
+    report.solve_part_1();
+    println!("{}", report.number_of_safe_reports);
 }
 
 #[cfg(test)]
@@ -101,7 +118,9 @@ mod tests {
     fn test_solve_part_1() {
         let input = read_input("test_case.txt").unwrap();
 
-        let report = Report::new(&input);
-        assert_eq!(2, report.solve_part_1());
+        let mut report = Report::new(&input);
+        report.solve_part_1();
+
+        assert_eq!(2, report.number_of_safe_reports);
     }
 }
